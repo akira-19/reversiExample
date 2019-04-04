@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <title></title>
+        <style>
+            #reversiTable {
+                border: 2px solid black;
+                background: #2A2;
+            }
+            #reversiTable td {
+                border: 2px solid black;
+                width: 100px;
+                height: 100px;
+            }
+            .blackPiece{
+                width: 70px;
+                height: 70px;
+                background: black;
+                border-radius: 50%;
+                margin: auto;
+            }
+            .whitePiece{
+                width: 70px;
+                height: 70px;
+                background: white;
+                border-radius: 50%;
+                margin: auto;
+
+            }
+        </style>
+    </head>
+    <body>
+        <div>
+            <table id="reversiTable">
+
+            </table>
+        </div>
+
+        <div id="id">
+        </div>
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script type="text/javascript">
+            (function(){
+                // set borad
+                let table = document.getElementById("reversiTable");
+                for (let i = 0; i < 8; i++) {
+                    let tr = document.createElement('tr');
+                    table.appendChild(tr);
+                }
+
+                let trElem = table.children;
+                for (let i = 0; i < 8; i++) {
+                    for (var j = 0; j < 8; j++) {
+                        let td = document.createElement('td');
+                        trElem[i].appendChild(td)
+                    }
+                }
+
+                tds = $('td');
+                for (var i = 0; i < tds.length; i++) {
+                    tds.eq(i).attr('value', i);
+                    tds.eq(i).attr('class', 'tdElements');
+                    tds.eq(i).attr('id', 'tdId-' + i);
+                    tds.eq(i).append("<div></div>")
+                }
+
+
+
+                // initialize reversi pieces
+                let serializedBoard = [];
+                let board = [];
+                let activePlayer = 1;
+
+                for (var i = 0; i < 64; i++) {
+                    serializedBoard.push(0);
+                }
+
+                serializedBoard[27] = 2;
+                serializedBoard[28] = 1;
+                serializedBoard[35] = 1;
+                serializedBoard[36] = 2;
+
+                for (var i = 0; i < 8; i++) {
+                    let array = [];
+                    for (var j = 0; j < 8; j++) {
+                        array.push(serializedBoard[8*i + j]);
+                    }
+                    board.push(array);
+                }
+
+                for (var i = 0; i < serializedBoard.length; i++) {
+                    if (serializedBoard[i] === 1){
+                        $("#tdId-"+i+" > div").addClass('whitePiece');
+                    } else if (serializedBoard[i] === 2){
+                        $("#tdId-"+i+" > div").addClass('blackPiece');
+                    }
+                }
+
+                for (var i = 0; i < serializedBoard.length; i++) {
+                    const x = i % 8;
+                    const y = Math.floor(i / 8);
+                    board[y][x] = serializedBoard[i]
+                }
+
+
+                //
+                // functions of reversi
+                //
+
+                $('td').on('click', function(){
+                    const posX = $(this).index();
+                    const posY = $(this).parent().index();
+                    placePiece(posX, posY, activePlayer);
+                    serializeTheBoard();
+                    setColorOfPieces();
+
+                 });
+
+                 function placePiece(_posX, _posY, _activePlayer){
+                     let opponent = getOpponent(_activePlayer);
+                     if (board[_posY][_posX] === 0){
+                         turnOverPiece(_posY, _posX, opponent);
+                         switchActivePlayer(_posY, _posX, _activePlayer);
+                     }else{
+                         return;
+                     }
+                 }
+
+                 function getOpponent(_activePlayer) {
+                     if (_activePlayer === 1){
+                         return 2;
+                     }else{
+                         return 1;
+                     }
+                 }
+
+                 function switchActivePlayer(_posX, _posY, _activePlayer){
+                     if (board[_posY][_posX] === activePlayer){
+                         if (activePlayer === 1) {
+                             activePlayer = 2;
+                         }else{
+                             activePlayer = 1;
+                         }
+                     }
+                 }
+
+                 function turnOverPiece(posX, posY, opponent){
+                     for (var i = -1; i <= 1; i++) {
+                         for (var j = -1; j <= 1; j++) {
+                             if (board[posY+j][posX+i] == opponent){
+                                 flipPieces(posY, posX, j, i, opponent);
+                             }
+                         }
+                     }
+                 }
+
+
+                 function flipPieces(posY, posX, j, i, opponent){
+                     let counter = 1;
+                     let diffX = i;
+                     let diffY = j;
+                     do {
+                         counter++;
+                         diffX = diffX * counter;
+                         diffY = diffY * counter;
+
+                         if (board[posY + diffY][posX + diffX] === 0){
+                             break;
+                         }else if (board[posY + diffY][posX + diffX] === activePlayer){
+                             for (var a = 1; a < counter; a++){
+                                 board[posY + (a * j)][posX + (a * i)] = activePlayer;
+                             }
+                             board[posY][posX] = activePlayer;
+                         }
+
+                     } while (board[posY + diffY][posX + diffX] == opponent);
+                 }
+
+
+                 function serializeTheBoard(){
+                     for (var i = 0; i < serializedBoard.length; i++) {
+                         const x = i % 8;
+                         const y = Math.floor(i / 8);
+                         serializedBoard[i] = board[y][x];
+                     }
+                 }
+
+                 function setColorOfPieces(){
+                     for (var i = 0; i < serializedBoard.length; i++) {
+                         if (serializedBoard[i] === 1){
+                             $("#tdId-"+i+" > div").addClass('whitePiece');
+                         } else if (serializedBoard[i] === 2){
+                             $("#tdId-"+i+" > div").addClass('blackPiece');
+                         }
+                     }
+                 }
+
+
+
+
+
+            })();
+
+
+        </script>
+    </body>
+</html>
